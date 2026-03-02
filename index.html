@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstraEngine — Game Engine Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-void: #07030f;
+    --bg-deep: #0d0619;
+    --bg-card: #110920;
+    --bg-card2: #160b2a;
+    --border: rgba(138, 80, 255, 0.15);
+    --border-bright: rgba(138, 80, 255, 0.4);
+    --purple-core: #8a50ff;
+    --purple-light: #b490ff;
+    --purple-dim: #5a2db8;
+    --accent-cyan: #50e0ff;
+    --accent-pink: #e050b8;
+    --text-primary: #ede8ff;
+    --text-secondary: #9080b8;
+    --text-muted: #5a4f7a;
+    --sidebar-w: 260px;
+    --header-h: 62px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: rgba(7, 3, 15, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 100;
+    gap: 0;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    text-decoration: none;
+    flex-shrink: 0;
+    width: var(--sidebar-w);
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+    position: relative;
+  }
+
+  .logo-icon svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px rgba(138, 80, 255, 0.8));
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #fff 30%, var(--purple-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--purple-core);
+    border: 1px solid var(--purple-dim);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    letter-spacing: 0.08em;
+    align-self: flex-start;
+    margin-top: 2px;
+    background: rgba(138, 80, 255, 0.08);
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    padding-left: 32px;
+  }
+
+  .header-nav a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .header-nav a:hover {
+    color: var(--text-primary);
+    background: rgba(138, 80, 255, 0.1);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-download {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, var(--purple-core), var(--purple-dim));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    box-shadow: 0 0 20px rgba(138, 80, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-download::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .btn-download:hover {
+    box-shadow: 0 0 35px rgba(138, 80, 255, 0.55);
+    transform: translateY(-1px);
+  }
+
+  .btn-download:hover::before { opacity: 1; }
+
+  .gh-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .gh-link:hover {
+    border-color: var(--border-bright);
+    color: var(--text-primary);
+  }
+
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: flex;
+    padding-top: var(--header-h);
+    min-height: 100vh;
+  }
+
+  /* ─── SIDEBAR ─── */
+  aside {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    width: var(--sidebar-w);
+    height: calc(100vh - var(--header-h));
+    overflow-y: auto;
+    background: rgba(13, 6, 25, 0.6);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+  }
+
+  aside::-webkit-scrollbar { width: 4px; }
+  aside::-webkit-scrollbar-track { background: transparent; }
+  aside::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+
+  .sidebar-section {
+    margin-bottom: 28px;
+  }
+
+  .sidebar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--purple-core);
+    text-transform: uppercase;
+    padding: 0 20px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    transition: all 0.18s;
+    position: relative;
+    border-left: 2px solid transparent;
+    margin: 1px 0;
+  }
+
+  .sidebar-link:hover, .sidebar-link.active {
+    color: var(--text-primary);
+    background: linear-gradient(to right, rgba(138, 80, 255, 0.1), transparent);
+    border-left-color: var(--purple-core);
+  }
+
+  .sidebar-link.active {
+    color: var(--purple-light);
+  }
+
+  .sidebar-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+    transition: background 0.18s;
+  }
+
+  .sidebar-link:hover .sidebar-dot,
+  .sidebar-link.active .sidebar-dot {
+    background: var(--purple-core);
+    box-shadow: 0 0 6px var(--purple-core);
+  }
+
+  .sidebar-tag {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid;
+  }
+
+  .tag-new {
+    color: var(--accent-cyan);
+    border-color: rgba(80, 224, 255, 0.3);
+    background: rgba(80, 224, 255, 0.05);
+  }
+
+  .tag-beta {
+    color: var(--accent-pink);
+    border-color: rgba(224, 80, 184, 0.3);
+    background: rgba(224, 80, 184, 0.05);
+  }
+
+  /* ─── MAIN ─── */
+  main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 48px 56px 80px;
+    max-width: 960px;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    margin-bottom: 64px;
+    position: relative;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -80px;
+    left: -100px;
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse at center, rgba(138,80,255,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--purple-core);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--purple-core);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 3.2rem;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, var(--purple-light) 50%, var(--purple-core) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 620px;
+    margin-bottom: 36px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    padding: 13px 28px;
+    background: linear-gradient(135deg, var(--purple-core), var(--purple-dim));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    box-shadow: 0 4px 30px rgba(138, 80, 255, 0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 45px rgba(138, 80, 255, 0.55);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    padding: 13px 28px;
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(138, 80, 255, 0.1);
+    border-color: var(--purple-core);
+  }
+
+  /* ─── STATS ─── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin-bottom: 60px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .stat {
+    background: var(--bg-card);
+    padding: 24px 20px;
+    text-align: center;
+    transition: background 0.2s;
+  }
+
+  .stat:hover { background: var(--bg-card2); }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    background: linear-gradient(135deg, #fff, var(--purple-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+
+  /* ─── SECTIONS ─── */
+  .doc-section {
+    margin-bottom: 56px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .section-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, rgba(138,80,255,0.2), rgba(138,80,255,0.05));
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: var(--text-secondary);
+    line-height: 1.75;
+    font-size: 0.92rem;
+  }
+
+  /* ─── CARDS ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    transition: all 0.25s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--purple-core), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .card:hover {
+    border-color: var(--border-bright);
+    background: var(--bg-card2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(138, 80, 255, 0.1);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-icon {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  /* ─── CODE BLOCK ─── */
+  .code-block {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(138, 80, 255, 0.04);
+  }
+
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--purple-core);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .code-copy {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: transparent;
+    transition: all 0.2s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .code-copy:hover {
+    color: var(--text-primary);
+    border-color: var(--border-bright);
+  }
+
+  pre {
+    padding: 20px 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: #c9b8ff;
+  }
+
+  .kw { color: #e070ff; }
+  .fn { color: var(--accent-cyan); }
+  .str { color: #90e8a0; }
+  .cm { color: var(--text-muted); font-style: italic; }
+  .num { color: #ffb060; }
+
+  /* ─── DOWNLOAD SECTION ─── */
+  .download-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 20px;
+  }
+
+  .dl-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 22px;
+    transition: all 0.25s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dl-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(to top, rgba(138,80,255,0.05), transparent);
+    pointer-events: none;
+  }
+
+  .dl-card:hover {
+    border-color: var(--border-bright);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(138, 80, 255, 0.12);
+  }
+
+  .dl-card.featured {
+    border-color: var(--purple-dim);
+    background: linear-gradient(160deg, rgba(138,80,255,0.08), var(--bg-card));
+  }
+
+  .dl-os {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .dl-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+  }
+
+  .dl-version {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .dl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, var(--purple-core), var(--purple-dim));
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(138, 80, 255, 0.25);
+  }
+
+  .dl-btn:hover {
+    box-shadow: 0 4px 28px rgba(138, 80, 255, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .dl-size {
+    margin-top: 12px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ─── ALERT / NOTE ─── */
+  .note {
+    border-left: 3px solid var(--purple-core);
+    background: rgba(138, 80, 255, 0.07);
+    padding: 14px 18px;
+    border-radius: 0 10px 10px 0;
+    margin: 20px 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .note strong {
+    color: var(--purple-light);
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* ─── TABLE ─── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+  }
+
+  thead tr {
+    background: rgba(138, 80, 255, 0.08);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    color: var(--purple-light);
+    padding: 12px 18px;
+    text-align: left;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    padding: 11px 18px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(138, 80, 255, 0.06);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: rgba(138, 80, 255, 0.04); }
+
+  .badge-yes {
+    color: #70e870;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+  }
+  .badge-no {
+    color: var(--text-muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+  }
+
+  /* ─── SEPARATOR ─── */
+  .sep {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    margin-left: var(--sidebar-w);
+    border-top: 1px solid var(--border);
+    background: rgba(7, 3, 15, 0.6);
+    padding: 40px 56px;
+  }
+
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 32px;
+  }
+
+  .footer-brand .logo-text {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .footer-brand p {
+    font-size: 0.8rem;
+    line-height: 1.6;
+    max-width: 220px;
+  }
+
+  .footer-col-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--text-primary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-links a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--purple-light); }
+
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .footer-bottom span { color: var(--purple-core); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-void); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <a href="#" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,3 37,32 3,32" fill="none" stroke="#8a50ff" stroke-width="2"/>
+        <polygon points="20,10 30,28 10,28" fill="rgba(138,80,255,0.2)" stroke="#b490ff" stroke-width="1.5"/>
+        <line x1="20" y1="3" x2="20" y2="37" stroke="#50e0ff" stroke-width="0.8" opacity="0.5"/>
+        <circle cx="20" cy="20" r="3" fill="#8a50ff"/>
+      </svg>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="logo-text">AstraEngine</span>
+      <span class="logo-badge">v2.4</span>
+    </div>
+  </a>
+
+  <nav class="header-nav">
+    <a href="#getting-started">Docs</a>
+    <a href="#api">API</a>
+    <a href="#download">Downloads</a>
+    <a href="#">Blog</a>
+    <a href="#">Community</a>
+  </nav>
+
+  <div class="header-actions">
+    <a href="#" class="gh-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+    <a href="#download" class="btn-download">↓ Download</a>
+  </div>
+</header>
+
+<!-- ═══════════════ LAYOUT ═══════════════ -->
+<div class="layout">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Introduction</div>
+      <a href="#getting-started" class="sidebar-link active">
+        <span class="sidebar-dot"></span> Getting Started
+      </a>
+      <a href="#overview" class="sidebar-link">
+        <span class="sidebar-dot"></span> What is AstraEngine?
+      </a>
+      <a href="#requirements" class="sidebar-link">
+        <span class="sidebar-dot"></span> Requirements
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Core Systems</div>
+      <a href="#rendering" class="sidebar-link">
+        <span class="sidebar-dot"></span> Rendering Pipeline
+        <span class="sidebar-tag tag-new">new</span>
+      </a>
+      <a href="#physics" class="sidebar-link">
+        <span class="sidebar-dot"></span> Physics Engine
+      </a>
+      <a href="#ecs" class="sidebar-link">
+        <span class="sidebar-dot"></span> ECS Architecture
+      </a>
+      <a href="#audio" class="sidebar-link">
+        <span class="sidebar-dot"></span> Audio System
+      </a>
+      <a href="#networking" class="sidebar-link">
+        <span class="sidebar-dot"></span> Networking
+        <span class="sidebar-tag tag-beta">beta</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">API Reference</div>
+      <a href="#api" class="sidebar-link">
+        <span class="sidebar-dot"></span> Core API
+      </a>
+      <a href="#scripting" class="sidebar-link">
+        <span class="sidebar-dot"></span> Scripting (Lua)
+      </a>
+      <a href="#shaders" class="sidebar-link">
+        <span class="sidebar-dot"></span> Shader Language
+      </a>
+      <a href="#tools" class="sidebar-link">
+        <span class="sidebar-dot"></span> Editor Tools
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Download</div>
+      <a href="#download" class="sidebar-link">
+        <span class="sidebar-dot"></span> Latest Release
+      </a>
+      <a href="#changelog" class="sidebar-link">
+        <span class="sidebar-dot"></span> Changelog
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="sidebar-dot"></span> Nightly Builds
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Community</div>
+      <a href="#" class="sidebar-link">
+        <span class="sidebar-dot"></span> Discord
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="sidebar-dot"></span> Forum
+      </a>
+      <a href="#" class="sidebar-link">
+        <span class="sidebar-dot"></span> Roadmap
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main>
+
+    <!-- HERO -->
+    <div class="hero" id="getting-started">
+      <div class="hero-glow"></div>
+      <div class="hero-eyebrow">Documentation v2.4.1</div>
+      <h1>Build Worlds.<br>Ship Games.</h1>
+      <p class="hero-desc">
+        AstraEngine is a high-performance, open-source game engine built for real-time 3D rendering, physics simulation, and cross-platform deployment. Designed for indie studios and AAA pipelines alike.
+      </p>
+      <div class="hero-actions">
+        <a href="#download" class="btn-primary">↓ Download Engine</a>
+        <a href="#overview" class="btn-secondary">Read Docs →</a>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-num">240+</span>
+        <div class="stat-label">FPS Average</div>
+      </div>
+      <div class="stat">
+        <span class="stat-num">6</span>
+        <div class="stat-label">Platforms</div>
+      </div>
+      <div class="stat">
+        <span class="stat-num">4.2K</span>
+        <div class="stat-label">GitHub Stars</div>
+      </div>
+      <div class="stat">
+        <span class="stat-num">MIT</span>
+        <div class="stat-label">License</div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="doc-section" id="overview">
+      <div class="section-header">
+        <div class="section-icon">🌌</div>
+        <h2>What is AstraEngine?</h2>
+      </div>
+      <p>AstraEngine is a modular, data-driven game engine written in C++20 with a Lua scripting layer. It features a deferred PBR rendering pipeline, Bullet-powered physics, a native entity-component-system (ECS), spatial audio, and experimental multiplayer networking via WebSocket/UDP transport.</p>
+
+      <div class="card-grid" style="margin-top: 24px;">
+        <div class="card">
+          <span class="card-icon">🎮</span>
+          <h3>Game-Ready Architecture</h3>
+          <p>Scene graph, asset pipeline, prefab system, and hot-reload support out of the box.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">⚡</span>
+          <h3>GPU-Accelerated</h3>
+          <p>Vulkan & Metal backends with automatic batching, instancing, and LOD management.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🧩</span>
+          <h3>ECS Core</h3>
+          <p>Sparse-set entity-component-system for cache-friendly, ultra-fast game logic.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🌐</span>
+          <h3>Cross-Platform</h3>
+          <p>Windows, macOS, Linux, iOS, Android, and WebAssembly from a single codebase.</p>
+        </div>
+      </div>
+    </div>
+
+    <hr class="sep">
+
+    <!-- REQUIREMENTS -->
+    <div class="doc-section" id="requirements">
+      <div class="section-header">
+        <div class="section-icon">🖥</div>
+        <h2>System Requirements</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>OS Version</th>
+              <th>GPU</th>
+              <th>RAM</th>
+              <th>Vulkan</th>
+              <th>Metal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Windows</td>
+              <td>10 / 11</td>
+              <td>GTX 1060+</td>
+              <td>8 GB</td>
+              <td class="badge-yes">✓</td>
+              <td class="badge-no">—</td>
+            </tr>
+            <tr>
+              <td>macOS</td>
+              <td>13 Ventura+</td>
+              <td>Apple M1+</td>
+              <td>8 GB</td>
+              <td class="badge-no">—</td>
+              <td class="badge-yes">✓</td>
+            </tr>
+            <tr>
+              <td>Linux</td>
+              <td>Ubuntu 22.04+</td>
+              <td>GTX 970+</td>
+              <td>8 GB</td>
+              <td class="badge-yes">✓</td>
+              <td class="badge-no">—</td>
+            </tr>
+            <tr>
+              <td>iOS</td>
+              <td>16.0+</td>
+              <td>A14 Bionic+</td>
+              <td>4 GB</td>
+              <td class="badge-no">—</td>
+              <td class="badge-yes">✓</td>
+            </tr>
+            <tr>
+              <td>Android</td>
+              <td>API 29+</td>
+              <td>Adreno 640+</td>
+              <td>4 GB</td>
+              <td class="badge-yes">✓</td>
+              <td class="badge-no">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <hr class="sep">
+
+    <!-- QUICK START -->
+    <div class="doc-section" id="api">
+      <div class="section-header">
+        <div class="section-icon">🚀</div>
+        <h2>Quick Start</h2>
+      </div>
+      <p>Clone the repository and build from source, or grab a prebuilt binary below. Here's your first scene in AstraScript (Lua):</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AstraScript · Lua</span>
+          <button class="code-copy" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('pre').innerText)">copy</button>
+        </div>
+        <pre><span class="cm">-- main.lua — minimal AstraEngine scene</span>
+<span class="kw">local</span> Engine = <span class="fn">require</span>(<span class="str">"astra.core"</span>)
+<span class="kw">local</span> Scene  = <span class="fn">require</span>(<span class="str">"astra.scene"</span>)
+
+<span class="cm">-- Create a new scene</span>
+<span class="kw">local</span> scene = Scene.<span class="fn">new</span>(<span class="str">"MyWorld"</span>)
+
+<span class="cm">-- Spawn a mesh entity with a rigid body</span>
+<span class="kw">local</span> box = scene:<span class="fn">spawn</span>({
+  mesh     = <span class="str">"meshes/cube.aml"</span>,
+  material = <span class="str">"materials/pbr_stone.mat"</span>,
+  position = Engine.Vec3(<span class="num">0</span>, <span class="num">5</span>, <span class="num">0</span>),
+  physics  = { shape = <span class="str">"box"</span>, mass = <span class="num">10.0</span> }
+})
+
+<span class="cm">-- Register update callback</span>
+scene:<span class="fn">on_update</span>(<span class="kw">function</span>(dt)
+  box:<span class="fn">rotate</span>(Engine.Vec3(<span class="num">0</span>, dt * <span class="num">45</span>, <span class="num">0</span>))
+<span class="kw">end</span>)
+
+Engine.<span class="fn">run</span>(scene)</pre>
+      </div>
+
+      <div class="note">
+        <strong>Note:</strong> AstraEngine uses a left-handed coordinate system. Y-axis points up. All angles are in degrees by default unless <code>Engine.set_radians(true)</code> is called.
+      </div>
+    </div>
+
+    <hr class="sep">
+
+    <!-- RENDERING -->
+    <div class="doc-section" id="rendering">
+      <div class="section-header">
+        <div class="section-icon">✨</div>
+        <h2>Rendering Pipeline</h2>
+      </div>
+      <p>AstraEngine uses a multi-pass deferred renderer with physically based shading (PBR). The pipeline supports HDR, temporal anti-aliasing (TAA), screen-space ambient occlusion (SSAO), and real-time global illumination via voxel cone tracing.</p>
+
+      <div class="card-grid" style="margin-top: 20px;">
+        <div class="card">
+          <h3>G-Buffer Pass</h3>
+          <p>Albedo, normal, roughness, metallic, and emissive data packed into MRT targets.</p>
+        </div>
+        <div class="card">
+          <h3>Lighting Pass</h3>
+          <p>Clustered forward+ lighting with shadow maps and real-time area lights.</p>
+        </div>
+        <div class="card">
+          <h3>Post Processing</h3>
+          <p>Bloom, lens flare, chromatic aberration, vignette, LUT color grading.</p>
+        </div>
+        <div class="card">
+          <h3>Ray Traced Shadows</h3>
+          <p>Optional DXR / Vulkan RT pass for ultra-accurate soft shadows. <span style="color:var(--accent-pink)">RTX only</span></p>
+        </div>
+      </div>
+
+      <div class="code-block" style="margin-top:24px">
+        <div class="code-header">
+          <span class="code-lang">GLSL · Vertex Shader</span>
+          <button class="code-copy" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('pre').innerText)">copy</button>
+        </div>
+        <pre><span class="cm">// AstraEngine PBR Vertex Shader</span>
+<span class="kw">#version</span> <span class="num">460</span> core
+<span class="kw">layout</span>(location = <span class="num">0</span>) <span class="kw">in</span> vec3 a_position;
+<span class="kw">layout</span>(location = <span class="num">1</span>) <span class="kw">in</span> vec3 a_normal;
+<span class="kw">layout</span>(location = <span class="num">2</span>) <span class="kw">in</span> vec2 a_uv;
+
+<span class="kw">uniform</span> mat4 u_mvp;
+<span class="kw">uniform</span> mat3 u_normal_matrix;
+
+<span class="kw">out</span> vec3 v_world_normal;
+<span class="kw">out</span> vec2 v_uv;
+
+<span class="kw">void</span> <span class="fn">main</span>() {
+  v_world_normal = <span class="fn">normalize</span>(u_normal_matrix * a_normal);
+  v_uv           = a_uv;
+  gl_Position    = u_mvp * vec4(a_position, <span class="num">1.0</span>);
+}</pre>
+      </div>
+    </div>
+
+    <hr class="sep">
+
+    <!-- DOWNLOAD -->
+    <div class="doc-section" id="download">
+      <div class="section-header">
+        <div class="section-icon">📦</div>
+        <h2>Download AstraEngine</h2>
+      </div>
+      <p>Choose your platform and grab the latest stable release. All builds include the editor, engine runtime, scripting VM, and example projects.</p>
+
+      <div class="download-grid" style="margin-top: 28px;">
+        <div class="dl-card featured">
+          <span class="dl-os">🪟</span>
+          <div class="dl-name">Windows</div>
+          <div class="dl-version">v2.4.1 · x64 installer</div>
+          <a href="#" class="dl-btn">↓ Download .exe</a>
+          <div class="dl-size">File size: 184 MB</div>
+        </div>
+        <div class="dl-card">
+          <span class="dl-os">🍎</span>
+          <div class="dl-name">macOS</div>
+          <div class="dl-version">v2.4.1 · Universal (M1+Intel)</div>
+          <a href="#" class="dl-btn">↓ Download .dmg</a>
+          <div class="dl-size">File size: 196 MB</div>
+        </div>
+        <div class="dl-card">
+          <span class="dl-os">🐧</span>
+          <div class="dl-name">Linux</div>
+          <div class="dl-version">v2.4.1 · AppImage</div>
+          <a href="#" class="dl-btn">↓ Download .AppImage</a>
+          <div class="dl-size">File size: 178 MB</div>
+        </div>
+      </div>
+
+      <div class="note" style="margin-top: 24px;">
+        <strong>Source Code:</strong> Available on GitHub under the MIT License. Build instructions for all platforms are in the <code>BUILDING.md</code> file in the repository root.
+      </div>
+
+      <div class="table-wrap" style="margin-top: 28px;" id="changelog">
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Date</th>
+              <th>Highlights</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>v2.4.1</td>
+              <td>2026-02-14</td>
+              <td style="color:var(--text-secondary);font-family:'Outfit',sans-serif;font-size:0.82rem">Fixed TAA ghosting, improved SSAO performance by 18%</td>
+            </tr>
+            <tr>
+              <td>v2.4.0</td>
+              <td>2026-01-08</td>
+              <td style="color:var(--text-secondary);font-family:'Outfit',sans-serif;font-size:0.82rem">Vulkan 1.3 backend, voxel GI, new asset pipeline</td>
+            </tr>
+            <tr>
+              <td>v2.3.5</td>
+              <td>2025-11-22</td>
+              <td style="color:var(--text-secondary);font-family:'Outfit',sans-serif;font-size:0.82rem">WebAssembly export, network beta, 200+ bug fixes</td>
+            </tr>
+            <tr>
+              <td>v2.3.0</td>
+              <td>2025-09-10</td>
+              <td style="color:var(--text-secondary);font-family:'Outfit',sans-serif;font-size:0.82rem">ECS rewrite, Metal backend for Apple Silicon</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <svg width="28" height="28" viewBox="0 0 40 40" fill="none" style="filter:drop-shadow(0 0 6px rgba(138,80,255,0.7))">
+          <polygon points="20,3 37,32 3,32" fill="none" stroke="#8a50ff" stroke-width="2"/>
+          <polygon points="20,10 30,28 10,28" fill="rgba(138,80,255,0.2)" stroke="#b490ff" stroke-width="1.5"/>
+          <circle cx="20" cy="20" r="3" fill="#8a50ff"/>
+        </svg>
+        <span class="logo-text" style="-webkit-text-fill-color: unset; background: linear-gradient(135deg, #fff 30%, #b490ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family:'Syne',sans-serif; font-weight:800; font-size:1.05rem">AstraEngine</span>
+      </div>
+      <p>High-performance open-source game engine for the next generation of games.</p>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Docs</div>
+      <ul class="footer-links">
+        <li><a href="#">Getting Started</a></li>
+        <li><a href="#">API Reference</a></li>
+        <li><a href="#">Tutorials</a></li>
+        <li><a href="#">Examples</a></li>
+        <li><a href="#">Changelog</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Engine</div>
+      <ul class="footer-links">
+        <li><a href="#">Rendering</a></li>
+        <li><a href="#">Physics</a></li>
+        <li><a href="#">Scripting</a></li>
+        <li><a href="#">Audio</a></li>
+        <li><a href="#">Networking</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Community</div>
+      <ul class="footer-links">
+        <li><a href="#">Discord Server</a></li>
+        <li><a href="#">GitHub</a></li>
+        <li><a href="#">Forum</a></li>
+        <li><a href="#">Roadmap</a></li>
+        <li><a href="#">Showcase</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 AstraEngine · MIT License</span>
+    <span>Built with <span>♥</span> for game developers everywhere</span>
+    <span>v<span>2.4.1</span> · 2026-02-14</span>
+  </div>
+</footer>
+
+<script>
+  // Highlight active sidebar link on scroll
+  const links = document.querySelectorAll('.sidebar-link');
+  const sections = document.querySelectorAll('.doc-section, .hero');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        links.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Stagger card animations
+  document.querySelectorAll('.card, .dl-card').forEach((card, i) => {
+    card.style.animationDelay = `${i * 0.06}s`;
+    card.style.animation = 'fadeUp 0.4s ease both';
+  });
+</script>
+</body>
+</html>
