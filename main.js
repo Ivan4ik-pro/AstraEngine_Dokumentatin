@@ -7,6 +7,27 @@ function toggleNavGroup(header) {
   group.classList.toggle('open');
 }
 
+function openLightbox(item) {
+  const img    = item.querySelector('img');
+  const lbImg  = document.getElementById('lightbox-img');
+  const lb     = document.getElementById('lightbox');
+
+  lbImg.src = img.src;
+  lbImg.alt = img.alt;
+  lb.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  lb.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+});
+
 const sections = document.querySelectorAll('section[id]');
 const navLinks  = document.querySelectorAll('nav a');
 
